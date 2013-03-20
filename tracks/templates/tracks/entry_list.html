@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Entries</h2>
+<ul>
+    {% for entry in object_list %}
+    <li>{{ entry.wavfile.file.url }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

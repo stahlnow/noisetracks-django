@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>NOiSETRACK</title>
+    <!--<link rel="stylesheet" href="{{ STATIC_URL }}css/style.css">-->
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+    <script src="http://maps.google.com/maps/api/js?sensor=false&region=GB"></script>
+    <script src="http://code.jquery.com/jquery-1.4.4.min.js"></script>
+    <script>
+        var map, marker, wavByID = {}, currentObject, geocoder;
+
+        function initialize() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(loadMap, error);
+            } else {
+                map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 3,
+                    center: new google.maps.LatLng(41.879535, -87.624333),
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                });
+                geocoder = new google.maps.Geocoder();
+            }
+
+        }
+
+        function error(msg) {
+            alert('error: ' + msg);
+        }
+
+        function loadMap(position) {
+            //alert(position.coords.latitude + ', ' + position.coords.longitude);
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 15,
+                center: new google.maps.LatLng(position.coords.latitude, position.coords.longitude),
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            });
+            geocoder = new google.maps.Geocoder();
+        }
+
+        {%
+            for wav in wavs %}
+            wavByID[{
+            {
+                wav.id
+            }
+        }
+        ]
+        = {
+            likes: "{{wav.likes}}",
+            lat: {
+        {
+            wav.geometry.y
+        }
+        },
+        lng: {
+            {
+                wav.geometry.x
+            }
+        }
+        }
+        ;
+        {%
+            endfor %
+        }
+
+        $(document).ready(function () {
+            function activateWavs() {
+                // Add wav click handler
+                $('.wav').each(function () {
+                    $(this).click(function () {
+                        var wav = wavByID[this.id];
+                        var center = new google.maps.LatLng(wav.lat, wav.lng);
+                        currentObject = $(this);
+                        if (marker) marker.setMap();
+                        marker = new google.maps.Marker({map: map, position: center, draggable: true});
+                        google.maps.event.addListener(marker, 'dragend', function () {
+                            var position = marker.getPosition();
+                            wav.lat = position.lat();
+                            wav.lng = position.lng();
+                            currentObject.html(wav.likes +
+                                    ' (' + wav.lat +
+                                    ', ' + wav.lng + ')');
+                        });
+                        map.panTo(center);
+                    }).hover(
+                            function () {
+                                this.className = this.className.replace('OFF', 'ON');
+                            },
+                            function () {
+                                this.className = this.className.replace('ON', 'OFF');
+                            }
+                    );
+                });
+            }
+
+            activateWavs();
+        });
+    </script>
+
+    <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: sans-serif
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        #wavs {
+            background-color: #fff;
+            opacity: 0.8;
+            overflow: auto;
+            width: 500px;
+            height: 100px;
+            position: absolute;
+            top: 150px;
+            right: 10px;
+            z-index: 99;
+            padding: 10px;
+        }
+
+        .linkOFF {
+            color: darkblue
+        }
+
+        .linkON {
+            color: white;
+            background-color: darkblue
+        }
+    </style>
+
+</head>
+
+<body onload='initialize()'>
+<div id=map></div>
+<div id=wavs>
+    {{ user }}
+    {{ content }}
+</div>
+</body>
+
+</html> 

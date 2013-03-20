@@ -1,0 +1,5 @@
+{% for wav in wavs %}
+<div id={{wav.id}} class='wav linkOFF'>
+    {{wav.likes}} ({{wav.geometry.y}}, {{wav.geometry.x}})
+</div>
+{% endfor %}
