@@ -1,4 +1,4 @@
-# Django settings for noisetrack project.
+# Django settings for noisetracks project.
 import os
 
 PROJECT_ROOT = os.path.realpath(os.path.dirname(__file__))
@@ -103,10 +103,10 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'noisetrack.urls'
+ROOT_URLCONF = 'noisetracks.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'noisetrack.wsgi.application'
+WSGI_APPLICATION = 'noisetracks.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
