@@ -28,7 +28,7 @@ class AudioFileAdmin(BaseAdmin):
     inlines = [EntryInline]
 
 
-class EntryAdmin(BaseAdmin): # (BaseAdmin, admin.OSMGeoAdmin)
+class EntryAdmin(BaseAdmin, admin.OSMGeoAdmin):
     readonly_fields = ('created', 'updated', 'uuid')
     fieldsets = BaseAdmin.fieldsets + [
         (None, {'fields': ['user']}),

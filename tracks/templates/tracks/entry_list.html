@@ -1,10 +1,36 @@
 {% extends "base.html" %}
 
+{% load voting_tags %}
+
 {% block content %}
-<h2>Entries</h2>
+
 <ul>
-    {% for entry in object_list %}
-    <li>{{ entry.wavfile.file.url }}</li>
-    {% endfor %}
+	<li>A
+		{% scores_for_objects entry_list as scores %}
+		{{ scores }} - {{ scores.4.score }}
+	</li>
+
+	<li>B
+		{% votes_by_user user on entry_list as vote_dict %}
+		{{ vote_dict }} - {{ vote_dict.2 }}
+	</li>
+	
+	<li>C
+		{% dict_entry_for_item entry from vote_dict as vote %}
+		{{ vote }}
+	</li>
+	
 </ul>
+
+<ul>
+{% for entry in entry_list %}    
+	{% score_for_object entry as score %}
+    <li>{{ entry }} - {{ score.score }} favourite{{ score.score|pluralize }} after {{ score.num_votes }} vote{{ score.num_votes|pluralize }}</li>
+{% endfor %}
+</ul>
+
+<hr />
+
+
+
 {% endblock %}

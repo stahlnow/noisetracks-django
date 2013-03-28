@@ -12,9 +12,7 @@ from tastypie.validation import FormValidation
 
 from django.contrib.auth.models import User
 
-from django.contrib.gis.db import models
-
-from django.core.exceptions import ObjectDoesNotExist
+import django.core.exceptions
 from django.db import IntegrityError
 
 from tracks.models import AudioFile, Entry
@@ -109,10 +107,11 @@ class UserResource(ModelResource):
     def dehydrate(self, bundle):
         try:
             bundle.data['mugshot'] = bundle.obj.get_profile().get_mugshot_url()
-        except ObjectDoesNotExist:
+        except django.core.exceptions.ObjectDoesNotExist:
             pass
 
-        if bundle.request.user.pk == bundle.obj.pk:
+        # set email only if it belongs to the user
+        if bundle.obj.pk == bundle.request.user.pk:
             bundle.data['email'] = bundle.obj.email
 
         return bundle
@@ -142,12 +141,13 @@ class EntryResource(BaseModelResource):
     class Meta:
         queryset = Entry.objects.all()
         resource_name = 'entry'
-        authentication = ApiKeyAuthentication()
-        authorization = Authorization()
+        include_resource_uri = True
+        list_allowed_methods = ["get"]
+        detail_allowed_methods = ["get"]
 
-        limit = 4
+        limit = 20
 
-        fields = ['location','recorded', 'created', 'uuid']
+        fields = ['uuid', 'location', 'recorded', 'created']
 
         ordering = ['created', 'recorded', 'user']
 
@@ -156,7 +156,10 @@ class EntryResource(BaseModelResource):
             'recorded': ['exact', 'lt', 'lte', 'gte', 'gt'],
             'audiofile': ( ALL_WITH_RELATIONS ),
             'user': ( ALL_WITH_RELATIONS )
-        }
+        }	
+        
+        authentication = ApiKeyAuthentication()
+        authorization = Authorization()
 
     def hydrate_audiofile(self, bundle):
         try:

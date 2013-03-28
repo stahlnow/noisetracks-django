@@ -27,6 +27,7 @@ urlpatterns = patterns('',
     url(r'^upload/', 'tracks.views.upload', name = 'upload'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^', include('userena.urls')),
+    
 ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

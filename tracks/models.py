@@ -1,6 +1,4 @@
 import os
-import datetime
-from django.utils import timezone
 from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.contrib.gis.db import models
@@ -30,16 +28,12 @@ def generate_audiofile_path(obj, file):
 
 
 class AudioFile(BaseModel):
-    file = models.FileField(upload_to=generate_audiofile_path,
-                            storage=audio_store)                            # file path
-    spectrogram = models.ImageField(upload_to=generate_audiofile_path, storage=audio_store,
-                                    blank=True)     # spectrogram, this is generated in post_save
+    file = models.FileField(upload_to=generate_audiofile_path, storage=audio_store) # file path
 
-    STATUS_CHOICES = (
-    (0, _('Waiting')),
-    (1, _('Done')),
-    (2, _('Error')),
-    )
+    spectrogram = models.ImageField(upload_to=generate_audiofile_path, storage=audio_store,
+                                    blank=True) # spectrogram, this is generated in post_save
+
+    STATUS_CHOICES = ( (0, _('Waiting')), (1, _('Done')), (2, _('Error')), )
 
     status = models.PositiveIntegerField(default=0, choices=STATUS_CHOICES)        # .objects.filter(status='Done')
 
@@ -59,21 +53,31 @@ class AudioFile(BaseModel):
     spectrogram_img.allow_tags = True
 
 
+
+# create spectrogram and mp3 using sox
 def post_save_audiofile(sender, **kwargs):
     if kwargs.get('created') is True:
         f = kwargs.get('instance')
-        print '%s is being processed...' % (f.file)
+        print '%s is being processed...' % f.file
 
-        out = os.path.splitext(f.file.name)[
-                  0] + '-sp.png' # same path/name as audio file with '-sp' added and '.png' as extension
+        # spectrogram
+        file_spec = os.path.splitext(f.file.name)[
+                        0] + '-sp.png' # same path/name as audio file with '-sp' added and '.png' as extension
+
+        # mp3
+        file_mp3 = os.path.splitext(f.file.name)[0] + '.mp3'
 
         try:
-            check_call(
-                ["sox", f.file.name, "-S", "-n", "remix", "-", "spectrogram", "-m", "-y", "256", "-X", "50", "-r", "-l",
-                 "-z", "80", "-o", out], cwd=settings.AUDIO_ROOT)
-            f.spectrogram.name = out
+            check_call(["sox", f.file.name, "-S", "-n", "remix", "-", "spectrogram", "-m", "-y", "256", "-X", "50", "-r", "-l", "-z", "80", "-o", file_spec], cwd=settings.AUDIO_ROOT)
+            f.spectrogram.name = file_spec
+            check_call(["sox", f.file.name, file_mp3], cwd=settings.AUDIO_ROOT)
+
+
+            f.file.name = file_mp3
+
             f.status = 1
             f.save()
+
         except Exception as e:
             print 'Error: ', str(e)
 
@@ -100,9 +104,9 @@ class Entry(BaseModel):
     audiofile = models.OneToOneField(AudioFile, unique=True, verbose_name=_('AudioFile'),
                                      related_name=_('Entry'))    # audio file
 
-    location = models.PointField(srid=4326)                                        # location coordinates
+    location = models.PointField(srid=4326) # location coordinates
 
-    recorded = models.DateTimeField()                                                # date and time when the audio was recorded
+    recorded = models.DateTimeField() # date and time when the audio was recorded
 
     likes = models.IntegerField(default=0, null=True, blank=True)                # likes
 

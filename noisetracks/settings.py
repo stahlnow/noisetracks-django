@@ -130,6 +130,7 @@ INSTALLED_APPS = (
     'guardian',
     'easy_thumbnails',
     'tastypie',
+    'voting',
     #'south',
 )
 
