@@ -1,7 +1,5 @@
 from django.contrib.gis import admin
-
-from tracks.models import BaseModel, AudioFile, Entry
-from tracks.models import Entry
+from tracks.models import AudioFile, Entry
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -35,7 +33,6 @@ class EntryAdmin(BaseAdmin, admin.OSMGeoAdmin):
         (None, {'fields': ['audiofile']}),
         ('Location', {'fields': ['location']}),
         ('Recorded', {'fields': ['recorded']}),
-        ('Likes', {'fields': ['likes']}),
     ]
     list_display = ('__unicode__', 'created', 'user', 'spectrogram_img')
 

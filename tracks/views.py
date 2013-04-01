@@ -25,7 +25,8 @@ from django.views.generic.list import ListView
 from tastypie.models import ApiKey
 
 from tracks.models import Entry, AudioFile
-from tracks.forms import UploadForm
+from tracks.forms import VoteForm, UploadForm
+from voting.models import Vote
 
 AUTH_HEADER_RE = re.compile(r"ApiKey .+:.+")
 
@@ -50,40 +51,87 @@ def stream(request):
 
 
 @csrf_exempt
+def vote(request):
+    if request.method == "POST":
+        # Handle vote form
+        form = VoteForm(request.POST, request.FILES)
+        if form.is_valid():
+            auth = request.META.get('HTTP_AUTHORIZATION')          # ApiKey Authorization header as defined in tastypie
+            if auth:                                               # should look like "ApiKey user:key"
+                if AUTH_HEADER_RE.match(auth):
+                    auth = auth.split(' ')[1]
+                    username = auth.split(':')[0]
+                    api_key = auth.split(':')[1]
+                else:
+                    return HttpResponseBadRequest()                 # fail: bad header
+
+                try:
+                    user = User.objects.get(username=username)      # try getting user from table
+                except ObjectDoesNotExist:
+                    return HttpResponseBadRequest()                 # ups, user does not exist
+
+                try:
+                    key = ApiKey.objects.get(user=user).key         # try getting api key from user
+                except ObjectDoesNotExist:
+                    return HttpResponseBadRequest()                 # todo: send info to client, that the key is missing
+
+                if api_key == key:                                  # check if the keys match
+                    try:
+                        e = Entry.objects.get(uuid=form.cleaned_data.get('uuid'))
+                    except ObjectDoesNotExist:
+                        return HttpResponseBadRequest('sorry dude, that entry was not found.')
+
+                    if not form.cleaned_data.get('vote') > 1 and not form.cleaned_data.get('vote') < -1:
+                        Vote.objects.record_vote(e, user, form.cleaned_data.get('vote'))
+                    else:
+                        return HttpResponseBadRequest('dude, votes should be 0, -1 or +1.')
+                else:
+                    # todo: send info to client, that the key is not valid
+                    return HttpResponseBadRequest("keys don't match")
+
+                return HttpResponse(content='', status=202)  # return with status 201 'accepted'
+            else:
+                return HttpResponseBadRequest("auth is empty")
+        else:
+            return HttpResponseBadRequest("form not valid")
+
+    else:
+        return HttpResponseBadRequest()
+
+@csrf_exempt
 def upload(request):
     if request.method == "POST":
 
         # Handle file upload
         form = UploadForm(request.POST, request.FILES)
         if form.is_valid():
-            auth = request.META.get(
-                'HTTP_AUTHORIZATION')            # ApiKey Authorization header as defined in tastypie
-            if auth:                                                # should look like "ApiKey user:key"
-                if (AUTH_HEADER_RE.match(auth)):
+            auth = request.META.get('HTTP_AUTHORIZATION')          # ApiKey Authorization header as defined in tastypie
+            if auth:                                               # should look like "ApiKey user:key"
+                if AUTH_HEADER_RE.match(auth):
                     auth = auth.split(' ')[1]
                     username = auth.split(':')[0]
-                    apikey = auth.split(':')[1]
+                    api_key = auth.split(':')[1]
                 else:
-                    return HttpResponseBadRequest()                    # fail: bad header
+                    return HttpResponseBadRequest()                 # fail: bad header
 
                 try:
-                    user = User.objects.get(username=username)    # try getting user from table
+                    user = User.objects.get(username=username)      # try getting user from table
                 except ObjectDoesNotExist:
-                    return HttpResponseBadRequest()                    # ups, user does not exist
+                    return HttpResponseBadRequest()                 # ups, user does not exist
 
                 try:
-                    key = ApiKey.objects.get(user=user).key        # try getting api key from user
+                    key = ApiKey.objects.get(user=user).key         # try getting api key from user
                 except ObjectDoesNotExist:
-                    return HttpResponseBadRequest()         # todo: send info to client, that the key is missing
+                    return HttpResponseBadRequest()                 # todo: send info to client, that the key is missing
 
-                if apikey == key:                            # check if the keys match
-                    f = AudioFile(file=request.FILES['wavfile'], status=0) # create file with status = waiting
+                if api_key == key:                                  # check if the keys match
+                    f = AudioFile(file=request.FILES['wavfile'], status=0)  # create file with status = waiting
                     f.save()
                 else:
                     return HttpResponseBadRequest(
                         "keys don't match")         # todo: send info to client, that the key is not valid
 
-                return HttpResponse(content=f.uuid, status=201) # return with status 201 'created' and uuid of audiofile
+                return HttpResponse(content=f.uuid, status=201)  # return with status 201 'created' + uuid of audiofile
             else:
                 return HttpResponseBadRequest("auth is empty")
         else:
@@ -94,8 +142,6 @@ def upload(request):
 
 
 def map(request):
-    'Display map'
-
     '''
     w = Document()
     w.uploader = request.user.get_profile()
@@ -106,7 +152,7 @@ def map(request):
     w.likes = 100
 
     w.save()
-    '''
+
     wavs = Entry.objects.order_by('-created')
 
     if request.user.is_authenticated():
@@ -119,5 +165,5 @@ def map(request):
     'wavs': wavs,
     'content': render_to_string('tracks/wavs.html', {'wavs': wavs}),
     }, context_instance=RequestContext(request))
-
+    '''
 

@@ -1,8 +1,8 @@
 from tastypie import fields
 from tastypie.exceptions import NotFound, BadRequest
+from django.core.context_processors import request
 
 from tastypie.contrib.gis.resources import ModelResource
-#from tastypie.resources import ModelResource
 
 from tastypie.resources import ALL_WITH_RELATIONS
 from tastypie.authentication import Authentication, BasicAuthentication, ApiKeyAuthentication
@@ -10,16 +10,22 @@ from tastypie.authorization import Authorization
 from tastypie.models import ApiKey
 from tastypie.validation import FormValidation
 
+from django.db import models
+
+from django.contrib.contenttypes.models import ContentType
+from tastypie.contrib.contenttypes.fields import GenericForeignKeyField
+
 from django.contrib.auth.models import User
 
 import django.core.exceptions
 from django.db import IntegrityError
+from django.http import HttpResponse
 
 from tracks.models import AudioFile, Entry
 from trackers.models import Profile
+from voting.models import Vote
 
 from userena.forms import SignupForm
-
 
 class BaseModelResource(ModelResource):
     @classmethod
@@ -92,6 +98,8 @@ class UserResource(ModelResource):
     class Meta:
         queryset = User.objects.all()
         resource_name = 'user'
+        list_allowed_methods = ["get"]
+        detail_allowed_methods = ["get"]
         authentication = ApiKeyAuthentication()
         authorization = Authorization()
 
@@ -105,6 +113,7 @@ class UserResource(ModelResource):
         }
 
     def dehydrate(self, bundle):
+
         try:
             bundle.data['mugshot'] = bundle.obj.get_profile().get_mugshot_url()
         except django.core.exceptions.ObjectDoesNotExist:
@@ -135,40 +144,63 @@ class AudioFileResource(BaseModelResource):
 
 class EntryResource(BaseModelResource):
     user = fields.ForeignKey(UserResource, 'user', full=True)
-
     audiofile = fields.ForeignKey(AudioFileResource, 'audiofile', full=True)
+
+    score = fields.IntegerField()   # total score for entry based on likes
+    likes = fields.BooleanField()   # null = user is neutral (default), false = user dislikes, true = user likes
 
     class Meta:
         queryset = Entry.objects.all()
         resource_name = 'entry'
+        list_allowed_methods = ["get", "post"]
+        detail_allowed_methods = ["get", "put"]
         include_resource_uri = True
-        list_allowed_methods = ["get"]
-        detail_allowed_methods = ["get"]
 
         limit = 20
 
-        fields = ['uuid', 'location', 'recorded', 'created']
+        fields = ['uuid', 'location', 'recorded', 'created', 'score', 'likes']
 
         ordering = ['created', 'recorded', 'user']
 
         filtering = {
             'created': ['exact', 'lt', 'lte', 'gte', 'gt'],
             'recorded': ['exact', 'lt', 'lte', 'gte', 'gt'],
-            'audiofile': ( ALL_WITH_RELATIONS ),
-            'user': ( ALL_WITH_RELATIONS )
+            'audiofile': ALL_WITH_RELATIONS,
+            'user': ALL_WITH_RELATIONS
         }	
         
         authentication = ApiKeyAuthentication()
         authorization = Authorization()
 
+    def put_detail(self, request, **kwargs):
+        pk = int(kwargs['pk'])
+        entry = Entry.objects.get(pk=pk)
+        if entry.user == request.user:
+            return super(EntryResource, self).put_detail(request, **kwargs)
+        else:
+            return HttpResponse(status=401)
+
     def hydrate_audiofile(self, bundle):
         try:
-            a = AudioFile.objects.get(uuid=bundle.data['uuid'])
-        except AudioFile.DoesNotExist:
-            print 'file not found...'   # todo: error handling, currently returns 404
+            bundle.obj.audiofile = AudioFile.objects.get(uuid=bundle.data['audio'])
             return bundle
-        bundle.obj.audiofile = a
+        except AudioFile.DoesNotExist:
+            raise BadRequest('Audio file does not exist.')
+
+    def hydrate_user(self, bundle):
+        bundle.obj.user = bundle.request.user
         return bundle
+
+    def dehydrate_score(self, bundle):
+        return Vote.objects.get_score(bundle.obj).get('score')
+
+    def dehydrate_likes(self, bundle):
+        ct = ContentType.objects.get_for_model(bundle.obj)
+        try:
+            vote = Vote.objects.get(content_type=ct, object_id=bundle.obj._get_pk_val(), user=bundle.request.user)
+            return vote.is_upvote()
+        except models.ObjectDoesNotExist:
+            return
 
 
 class ProfileResource(ModelResource):
@@ -195,4 +227,52 @@ class ProfileResource(ModelResource):
         bundle.data['tracks'] = bundle.obj.user.entry_set.count()    # number of tracks
         return bundle
 
+
+'''
+class EntryVoteResource(ModelResource):
+    class Meta:
+        queryset = Vote.objects.all()
+        resource_name = 'vote'
+        list_allowed_methods = ["post"]
+        detail_allowed_methods = ["post"]
+        authentication = ApiKeyAuthentication()
+        authorization = Authorization()
+
+        fields = ['vote']
+
+    def hydrate_vote(self, bundle):
+        print bundle.data.get('vote')
+        Vote.objects.record_vote(bundle.obj, bundle.request.user, bundle.data.get('vote'))
+        return bundle
+'''
+
+
+
+class ContentTypeResource(ModelResource):
+    class Meta:
+        resource_name = 'content_type'
+        queryset = ContentType.objects.all()
+        authentication = ApiKeyAuthentication()
+        authorization = Authorization()
+
+
+class VoteResource(ModelResource):
+    user = fields.ForeignKey(UserResource, 'user')
+    content_object = GenericForeignKeyField({ContentType: ContentTypeResource, Entry: EntryResource}, 'object')
+
+    class Meta:
+        queryset = Vote.objects.all()
+        resource_name = 'vote'
+        authentication = ApiKeyAuthentication()
+        authorization = Authorization()
+        always_return_data = True
+        include_resource_uri = False
+        fields = ['id', 'vote', 'content_object']
+
+    def hydrate_user(self, bundle):
+        bundle.obj.user = bundle.request.user
+        return bundle
+
+    def obj_update(self, bundle, **kwargs):
+        return bundle
 

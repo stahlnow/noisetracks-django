@@ -28,7 +28,7 @@ def generate_audiofile_path(obj, file):
 
 
 class AudioFile(BaseModel):
-    file = models.FileField(upload_to=generate_audiofile_path, storage=audio_store) # file path
+    file = models.FileField(upload_to=generate_audiofile_path, storage=audio_store)  # file path
 
     spectrogram = models.ImageField(upload_to=generate_audiofile_path, storage=audio_store,
                                     blank=True) # spectrogram, this is generated in post_save
@@ -61,8 +61,8 @@ def post_save_audiofile(sender, **kwargs):
         print '%s is being processed...' % f.file
 
         # spectrogram
-        file_spec = os.path.splitext(f.file.name)[
-                        0] + '-sp.png' # same path/name as audio file with '-sp' added and '.png' as extension
+        # same path/name as audio file with '-sp' added and '.png' as extension
+        file_spec = os.path.splitext(f.file.name)[0] + '-sp.png'
 
         # mp3
         file_mp3 = os.path.splitext(f.file.name)[0] + '.mp3'
@@ -85,11 +85,11 @@ def post_save_audiofile(sender, **kwargs):
 def post_delete_audiofile(sender, **kwargs):
     f = kwargs['instance']
     try:
-        audio_store.delete(f.file.path) # delete audio
+        audio_store.delete(f.file.path)  # delete audio
     except:
         pass
     try:
-        audio_store.delete(f.spectrogram.path) # delete spectrogram image
+        audio_store.delete(f.spectrogram.path)  # delete spectrogram image
     except:
         pass
 
@@ -100,16 +100,10 @@ models.signals.post_delete.connect(post_delete_audiofile, sender=AudioFile)
 
 class Entry(BaseModel):
     user = models.ForeignKey(User)                                                    # user
-
     audiofile = models.OneToOneField(AudioFile, unique=True, verbose_name=_('AudioFile'),
                                      related_name=_('Entry'))    # audio file
-
-    location = models.PointField(srid=4326) # location coordinates
-
-    recorded = models.DateTimeField() # date and time when the audio was recorded
-
-    likes = models.IntegerField(default=0, null=True, blank=True)                # likes
-
+    location = models.PointField(srid=4326)  # location coordinates
+    recorded = models.DateTimeField()  # date and time when the audio was recorded
     objects = models.GeoManager()
 
     # meta
@@ -118,7 +112,6 @@ class Entry(BaseModel):
         verbose_name = _('entry')
         verbose_name_plural = _('entries')
         ordering = ('-created', )
-
 
     def __unicode__(self):
         return self.audiofile.file.url

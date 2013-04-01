@@ -7,13 +7,15 @@
 <ul>
 	<li>A
 		{% scores_for_objects entry_list as scores %}
-		{{ scores }} - {{ scores.4.score }}
+		{{ scores }}<br />
+        <i>scores for entry 14:</i> {{ scores.14.score }}
 	</li>
 
 	<li>B
 		{% votes_by_user user on entry_list as vote_dict %}
-		{{ vote_dict }} - {{ vote_dict.2 }}
-	</li>
+        {{ vote_dict }}<br />
+        <i>vote dict for entry 14:</i> {{ vote_dict.14.vote }}
+    </li>
 	
 	<li>C
 		{% dict_entry_for_item entry from vote_dict as vote %}
