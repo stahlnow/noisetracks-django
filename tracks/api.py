@@ -4,13 +4,11 @@ from django.core.context_processors import request
 
 from tastypie.contrib.gis.resources import ModelResource
 
-from tastypie.resources import ALL_WITH_RELATIONS
+from tastypie.resources import ALL_WITH_RELATIONS, Resource
 from tastypie.authentication import Authentication, BasicAuthentication, ApiKeyAuthentication
 from tastypie.authorization import Authorization
 from tastypie.models import ApiKey
 from tastypie.validation import FormValidation
-
-from django.db import models
 
 from django.contrib.contenttypes.models import ContentType
 from tastypie.contrib.contenttypes.fields import GenericForeignKeyField
@@ -18,8 +16,9 @@ from tastypie.contrib.contenttypes.fields import GenericForeignKeyField
 from django.contrib.auth.models import User
 
 import django.core.exceptions
+from django.db import models
 from django.db import IntegrityError
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 
 from tracks.models import AudioFile, Entry
 from trackers.models import Profile
@@ -147,7 +146,7 @@ class EntryResource(BaseModelResource):
     audiofile = fields.ForeignKey(AudioFileResource, 'audiofile', full=True)
 
     score = fields.IntegerField()   # total score for entry based on likes
-    likes = fields.BooleanField()   # null = user is neutral (default), false = user dislikes, true = user likes
+    vote = fields.IntegerField()    # 0 = user doesn't care, 1 = user likes, -1 = user dislikes
 
     class Meta:
         queryset = Entry.objects.all()
@@ -194,13 +193,13 @@ class EntryResource(BaseModelResource):
     def dehydrate_score(self, bundle):
         return Vote.objects.get_score(bundle.obj).get('score')
 
-    def dehydrate_likes(self, bundle):
+    def dehydrate_vote(self, bundle):
         ct = ContentType.objects.get_for_model(bundle.obj)
         try:
-            vote = Vote.objects.get(content_type=ct, object_id=bundle.obj._get_pk_val(), user=bundle.request.user)
-            return vote.is_upvote()
+            v = Vote.objects.get(content_type=ct, object_id=bundle.obj._get_pk_val(), user=bundle.request.user)
+            return 1 if v.is_upvote() else -1
         except models.ObjectDoesNotExist:
-            return
+            return 0
 
 
 class ProfileResource(ModelResource):
@@ -228,25 +227,62 @@ class ProfileResource(ModelResource):
         return bundle
 
 
-'''
-class EntryVoteResource(ModelResource):
+class EntryVoteResource(Resource):
+    uuid = fields.CharField(attribute='uuid')
+    vote = fields.IntegerField(attribute='vote')
+
     class Meta:
-        queryset = Vote.objects.all()
         resource_name = 'vote'
+        object_class = Vote
         list_allowed_methods = ["post"]
-        detail_allowed_methods = ["post"]
+        detail_allowed_methods = []
+        include_resource_uri = False
+        always_return_data = True
         authentication = ApiKeyAuthentication()
         authorization = Authorization()
 
-        fields = ['vote']
+    def detail_uri_kwargs(self, bundle_or_obj):
+        kwargs = {}
+        return kwargs
 
-    def hydrate_vote(self, bundle):
-        print bundle.data.get('vote')
-        Vote.objects.record_vote(bundle.obj, bundle.request.user, bundle.data.get('vote'))
+    def obj_create(self, bundle, request=None, **kwargs):
+        bundle = self.full_hydrate(bundle)
+
+        try:
+            e = Entry.objects.get(uuid=bundle.data.get('uuid'))
+        except Entry.DoesNotExist:
+            e = None
+        Vote.objects.record_vote(e, request.user, bundle.data.get('vote'))
+
         return bundle
+
+    def obj_update(self, bundle, request=None, **kwargs):
+        return self.obj_create(bundle, request, **kwargs)
+
+
 '''
+class EntryVoteResourceForm(ModelResource):
+    class Meta:
+        resource_name = 'voteform'
+        list_allowed_methods = ["post"]
+        detail_allowed_methods = []
+        authentication = ApiKeyAuthentication()
+        authorization = Authorization()
 
+    def post_list(self, request, **kwargs):
+        uuid = request.POST.get('uuid', None)
+        vote = request.POST.get('vote', None)
+        if None in (uuid, vote):
+            return HttpResponseBadRequest('dude, we need uuid and a vote (0, -1 or +1)')
+        try:
+            e = Entry.objects.get(uuid=uuid)
+        except models.ObjectDoesNotExist:
+            return HttpResponseBadRequest('this entry was not found.')
 
+        if not vote > 1 and not vote < -1:
+            Vote.objects.record_vote(e, request.user, vote)
+            return self.create_response(request, {'result': vote})
+        return HttpResponseBadRequest()
 
 class ContentTypeResource(ModelResource):
     class Meta:
@@ -262,7 +298,7 @@ class VoteResource(ModelResource):
 
     class Meta:
         queryset = Vote.objects.all()
-        resource_name = 'vote'
+        resource_name = 'votes'
         authentication = ApiKeyAuthentication()
         authorization = Authorization()
         always_return_data = True
@@ -276,3 +312,4 @@ class VoteResource(ModelResource):
     def obj_update(self, bundle, **kwargs):
         return bundle
 
+'''

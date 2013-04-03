@@ -8,8 +8,7 @@ from tastypie.api import Api
 
 from tracks.views import Entries
 from tracks.api import SignupResource, ApiTokenResource, UserResource, AudioFileResource, EntryResource,\
-    ProfileResource, ContentTypeResource, VoteResource
-    #EntryVoteResource
+    ProfileResource, EntryVoteResource
 
 
 v1_api = Api(api_name='v1')
@@ -19,9 +18,11 @@ v1_api.register(UserResource())
 v1_api.register(AudioFileResource())
 v1_api.register(EntryResource())
 v1_api.register(ProfileResource())
-#v1_api.register(EntryVoteResource())
-v1_api.register(ContentTypeResource())
-v1_api.register(VoteResource())
+
+#v1_api.register(ContentTypeResource())
+#v1_api.register(VoteResource())
+v1_api.register(EntryVoteResource())
+#v1_api.register(EntryVoteResourceForm())
 
 
 admin.autodiscover()

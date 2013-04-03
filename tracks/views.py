@@ -89,7 +89,7 @@ def vote(request):
                     # todo: send info to client, that the key is not valid
                     return HttpResponseBadRequest("keys don't match")
 
-                return HttpResponse(content='', status=202)  # return with status 201 'accepted'
+                return HttpResponse(content='', status=202)  # return with status 202 'accepted'
             else:
                 return HttpResponseBadRequest("auth is empty")
         else:
