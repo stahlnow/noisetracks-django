@@ -12,18 +12,7 @@ class BaseAdmin(admin.ModelAdmin):
 
 class EntryInline(admin.TabularInline):
     model = Entry
-    fields = ('user',)
-
-
-class AudioFileAdmin(BaseAdmin):
-    readonly_fields = ('created', 'updated', 'uuid', 'spectrogram')
-    fieldsets = BaseAdmin.fieldsets + [
-        ('File Path', {'fields': ['file']}),
-        ('Spectrogram Path', {'fields': ['spectrogram']}),
-        ('Status', {'fields': ['status']}),
-    ]
-    list_display = ('file', 'spectrogram_img')
-    inlines = [EntryInline]
+    readonly_fields = ('location', 'recorded', 'uuid', 'user',)
 
 
 class EntryAdmin(BaseAdmin, admin.OSMGeoAdmin):
@@ -36,6 +25,16 @@ class EntryAdmin(BaseAdmin, admin.OSMGeoAdmin):
     ]
     list_display = ('__unicode__', 'created', 'user', 'spectrogram_img')
 
+
+class AudioFileAdmin(BaseAdmin):
+    readonly_fields = ('created', 'updated', 'uuid', 'spectrogram')
+    fieldsets = BaseAdmin.fieldsets + [
+        ('File Path', {'fields': ['file']}),
+        ('Spectrogram Path', {'fields': ['spectrogram']}),
+        ('Status', {'fields': ['status']}),
+        ]
+    list_display = ('__unicode__', 'spectrogram_img')
+    inlines = [EntryInline]
 
 admin.site.register(Entry, EntryAdmin)
 admin.site.register(AudioFile, AudioFileAdmin)

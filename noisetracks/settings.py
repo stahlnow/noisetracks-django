@@ -34,10 +34,11 @@ AUTH_PROFILE_MODULE = "trackers.profile"
 ANONYMOUS_USER_ID = -1
 USERENA_SIGNIN_REDIRECT_URL = '/%(username)s/'
 USERENA_FORBIDDEN_USERNAMES = ('signup', 'signout', 'signin', 'activate', 'me', 'password', 'settings', 'admin',
-								'page', 'forum', 'newsletter', 'login', 'logout', 'administrator', 'api',
-								'tos', 'privacy', 'about', 'download', 'upload', 'jobs', 'connect', 'discover', 'home', 'events',
-								'following', 'followers', 'favorites', 'friends', 'messages', 'groups', 'lists', 'apps',
-								'map', 'search', 'media', '#', 'help', 'tag', 'tools')
+                               'page', 'forum', 'newsletter', 'login', 'logout', 'administrator', 'api',
+                               'tos', 'privacy', 'about', 'download', 'upload', 'jobs', 'connect', 'discover', 'home',
+                               'events',
+                               'following', 'followers', 'favorites', 'friends', 'messages', 'groups', 'lists', 'apps',
+                               'map', 'search', 'media', '#', 'help', 'tag', 'tools')
 
 USERENA_DEFAULT_PRIVACY = "open"
 USERENA_MUGSHOT_GRAVATAR = True
@@ -73,9 +74,9 @@ STATIC_URL = '/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
+# Put strings here, like "/home/html/static" or "C:/www/django/static".
+# Always use forward slashes, even on Windows.
+# Don't forget to use absolute paths, not relative paths.
 )
 
 # List of finder classes that know how to find static files in
@@ -83,14 +84,14 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    #     'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -109,9 +110,9 @@ ROOT_URLCONF = 'noisetracks.urls'
 WSGI_APPLICATION = 'noisetracks.wsgi.application'
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
+# Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+# Always use forward slashes, even on Windows.
+# Don't forget to use absolute paths, not relative paths.
 )
 
 INSTALLED_APPS = (
@@ -170,7 +171,6 @@ LOGGING = {
         },
     }
 }
-
 
 try:
     from local_settings import *

@@ -4,6 +4,7 @@ from django.core.context_processors import request
 
 from tastypie.contrib.gis.resources import ModelResource
 
+from tastypie.bundle import Bundle
 from tastypie.resources import ALL_WITH_RELATIONS, Resource
 from tastypie.authentication import Authentication, BasicAuthentication, ApiKeyAuthentication
 from tastypie.authorization import Authorization
@@ -26,6 +27,7 @@ from voting.models import Vote
 
 from userena.forms import SignupForm
 
+'''
 class BaseModelResource(ModelResource):
     @classmethod
     def get_fields(cls, fields=None, excludes=None):
@@ -46,7 +48,7 @@ class BaseModelResource(ModelResource):
                 if res_field:
                     res_field.blank = True
         return fields
-
+'''
 
 class SignupResource(ModelResource):
     class Meta:
@@ -59,9 +61,9 @@ class SignupResource(ModelResource):
         include_resource_uri = False
         fields = ['username', 'email']
 
-    def obj_create(self, bundle, request=None, **kwargs):
+    def obj_create(self, bundle, **kwargs):
         try:
-            bundle = super(SignupResource, self).obj_create(bundle, request, **kwargs)
+            bundle = super(SignupResource, self).obj_create(bundle, **kwargs)
             bundle.obj.set_password(bundle.data.get('password1'))
             bundle.obj.email = bundle.data.get('email')
             bundle.obj.save()
@@ -81,6 +83,20 @@ class ApiTokenResource(ModelResource):
         detail_allowed_methods = ["get"]
         authentication = BasicAuthentication()
 
+    def get_detail(self, request, **kwargs):
+
+        if kwargs["pk"] != "auth":
+            raise NotImplementedError("Resource not found")
+
+        obj = ApiKey.objects.get(user=request.user)
+
+        bundle = self.build_bundle(obj=obj, request=request)
+        bundle = self.full_dehydrate(bundle)
+        bundle = self.alter_detail_data_to_serialize(request, bundle)
+        return self.create_response(request, bundle)
+
+
+    '''
     def obj_get(self, request=None, **kwargs):
         if kwargs["pk"] != "auth":
             raise NotImplementedError("Resource not found")
@@ -91,7 +107,7 @@ class ApiTokenResource(ModelResource):
 
         api_key = ApiKey.objects.get(user=request.user)
         return api_key
-
+    '''
 
 class UserResource(ModelResource):
     class Meta:
@@ -125,7 +141,7 @@ class UserResource(ModelResource):
         return bundle
 
 
-class AudioFileResource(BaseModelResource):
+class AudioFileResource(ModelResource):
     class Meta:
         queryset = AudioFile.objects.all()
         resource_name = 'audiofile'
@@ -141,7 +157,7 @@ class AudioFileResource(BaseModelResource):
         }
 
 
-class EntryResource(BaseModelResource):
+class EntryResource(ModelResource):
     user = fields.ForeignKey(UserResource, 'user', full=True)
     audiofile = fields.ForeignKey(AudioFileResource, 'audiofile', full=True)
 
@@ -152,10 +168,10 @@ class EntryResource(BaseModelResource):
         queryset = Entry.objects.all()
         resource_name = 'entry'
         list_allowed_methods = ["get", "post"]
-        detail_allowed_methods = ["get", "put"]
+        detail_allowed_methods = ["get", "put", "delete"]
         include_resource_uri = True
 
-        limit = 20
+        limit = 100
 
         fields = ['uuid', 'location', 'recorded', 'created', 'score', 'likes']
 
@@ -167,7 +183,7 @@ class EntryResource(BaseModelResource):
             'audiofile': ALL_WITH_RELATIONS,
             'user': ALL_WITH_RELATIONS
         }	
-        
+
         authentication = ApiKeyAuthentication()
         authorization = Authorization()
 
@@ -176,6 +192,20 @@ class EntryResource(BaseModelResource):
         entry = Entry.objects.get(pk=pk)
         if entry.user == request.user:
             return super(EntryResource, self).put_detail(request, **kwargs)
+        else:
+            return HttpResponse(status=401)
+
+    def delete_detail(self, request, **kwargs):
+        pk = int(kwargs['pk'])
+        entry = Entry.objects.get(pk=pk)
+        uuid = entry.uuid
+        if entry.user == request.user:
+            bundle = Bundle(request=request)
+            try:
+                self.obj_delete(bundle=bundle, **self.remove_api_resource_names(kwargs))
+                return HttpResponse(status=200, content=uuid)
+            except NotFound:
+                return HttpResponse(status=404)
         else:
             return HttpResponse(status=401)
 
@@ -200,6 +230,8 @@ class EntryResource(BaseModelResource):
             return 1 if v.is_upvote() else -1
         except models.ObjectDoesNotExist:
             return 0
+
+
 
 
 class ProfileResource(ModelResource):
@@ -252,7 +284,7 @@ class EntryVoteResource(Resource):
             e = Entry.objects.get(uuid=bundle.data.get('uuid'))
         except Entry.DoesNotExist:
             e = None
-        Vote.objects.record_vote(e, request.user, bundle.data.get('vote'))
+        Vote.objects.record_vote(e, bundle.request.user, bundle.data.get('vote'))
 
         return bundle
 

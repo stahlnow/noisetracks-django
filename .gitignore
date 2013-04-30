@@ -2,6 +2,6 @@
 *.pot
 *.pyc
 
-local_settings.py
+*.idea/
 
-*.bat
+local_settings.py
