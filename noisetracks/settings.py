@@ -124,6 +124,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.gis',
+    'gunicorn',
+    'djsupervisor',
     'trackers',
     'tracks',
     'upload',

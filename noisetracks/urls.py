@@ -28,11 +28,12 @@ v1_api.register(EntryVoteResource())
 admin.autodiscover()
 
 urlpatterns = patterns('',
-                       url(r'^$', Entries.as_view(), name='entries'),
+                       #url(r'^$', Entries.as_view(), name='entries'),
                        #url(r'^$', 'tracks.views.map', name='home'),
+                       url(r'^$', 'tracks.views.index', name='index'),
+                       url(r'^beta/', 'tracks.views.beta', name='beta'),
                        url(r'^api/', include(v1_api.urls)),
                        url(r'^audio/', 'tracks.views.stream', name='stream'),
-                       url(r'^vote/', 'tracks.views.vote', name='vote'),
                        url(r'^upload/', 'tracks.views.upload', name='upload'),
                        url(r'^admin/', include(admin.site.urls)),
                        url(r'^', include('userena.urls')),

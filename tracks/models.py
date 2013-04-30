@@ -53,7 +53,7 @@ class AudioFile(BaseModel):
     spectrogram_img.allow_tags = True
 
 
-# create spectrogram and mp3 using sox
+# create spectrogram and ogg using sox
 def post_save_audiofile(sender, **kwargs):
     if kwargs.get('created') is True:
         f = kwargs.get('instance')
@@ -63,14 +63,14 @@ def post_save_audiofile(sender, **kwargs):
         # same path/name as audio file with '-sp' added and '.png' as extension
         file_spec = os.path.splitext(f.file.name)[0] + '-sp.png'
 
-        # mp3
-        file_mp3 = os.path.splitext(f.file.name)[0] + '.mp3'
+        # ogg
+        file_ogg = os.path.splitext(f.file.name)[0] + '.ogg'
 
         try:
             check_call(["sox", f.file.name, "-S", "-n", "remix", "-", "spectrogram", "-m", "-y", "256", "-X", "50", "-r", "-l", "-z", "80", "-o", file_spec], cwd=settings.AUDIO_ROOT)
             f.spectrogram.name = file_spec
-            check_call(["sox", f.file.name, "--norm", file_mp3], cwd=settings.AUDIO_ROOT)
-            f.file.name = file_mp3
+            check_call(["sox", f.file.name, "--norm", file_ogg], cwd=settings.AUDIO_ROOT)
+            f.file.name = file_ogg
 
             f.status = 1
             f.save()
@@ -82,7 +82,7 @@ def post_save_audiofile(sender, **kwargs):
 def post_delete_audiofile(sender, **kwargs):
     f = kwargs['instance']
     try:
-        audio_store.delete(f.file.path)  # delete mp3 file
+        audio_store.delete(f.file.path)  # delete ogg file
     except:
         pass
     try:

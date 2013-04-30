@@ -25,10 +25,17 @@ from django.views.generic.list import ListView
 from tastypie.models import ApiKey
 
 from tracks.models import Entry, AudioFile
-from tracks.forms import VoteForm, UploadForm
-from voting.models import Vote
+from tracks.forms import UploadForm
 
 AUTH_HEADER_RE = re.compile(r"ApiKey .+:.+")
+
+
+
+def index(request):
+    return render_to_response('tracks/index.html')
+
+def beta(request):
+    return render_to_response('tracks/beta.html')
 
 
 class Entries(ListView):
@@ -43,60 +50,11 @@ def stream(request):
     path = settings.PROJECT_ROOT + request.path
 
     if not (os.path.splitext(request.path)[1] == '.png'):
-        response = HttpResponse(FileWrapper(open(path, "rb")), mimetype='audio/mpeg')
+        response = HttpResponse(FileWrapper(open(path, "rb")), mimetype='audio/ogg')
         response['Content-Length'] = os.path.getsize(path)
         response['Content-Disposition'] = 'filename=%s' % ( os.path.basename(request.path) )
         return response
     return HttpResponse(FileWrapper(open(path, "rb")), mimetype='image/png')
-
-
-@csrf_exempt
-def vote(request):
-    if request.method == "POST":
-        # Handle vote form
-        form = VoteForm(request.POST, request.FILES)
-        if form.is_valid():
-            auth = request.META.get('HTTP_AUTHORIZATION')          # ApiKey Authorization header as defined in tastypie
-            if auth:                                               # should look like "ApiKey user:key"
-                if AUTH_HEADER_RE.match(auth):
-                    auth = auth.split(' ')[1]
-                    username = auth.split(':')[0]
-                    api_key = auth.split(':')[1]
-                else:
-                    return HttpResponseBadRequest()                 # fail: bad header
-
-                try:
-                    user = User.objects.get(username=username)      # try getting user from table
-                except ObjectDoesNotExist:
-                    return HttpResponseBadRequest()                 # ups, user does not exist
-
-                try:
-                    key = ApiKey.objects.get(user=user).key         # try getting api key from user
-                except ObjectDoesNotExist:
-                    return HttpResponseBadRequest()                 # todo: send info to client, that the key is missing
-
-                if api_key == key:                                  # check if the keys match
-                    try:
-                        e = Entry.objects.get(uuid=form.cleaned_data.get('uuid'))
-                    except ObjectDoesNotExist:
-                        return HttpResponseBadRequest('sorry dude, that entry was not found.')
-
-                    if not form.cleaned_data.get('vote') > 1 and not form.cleaned_data.get('vote') < -1:
-                        Vote.objects.record_vote(e, user, form.cleaned_data.get('vote'))
-                    else:
-                        return HttpResponseBadRequest('dude, votes should be 0, -1 or +1.')
-                else:
-                    # todo: send info to client, that the key is not valid
-                    return HttpResponseBadRequest("keys don't match")
-
-                return HttpResponse(content='', status=202)  # return with status 202 'accepted'
-            else:
-                return HttpResponseBadRequest("auth is empty")
-        else:
-            return HttpResponseBadRequest("form not valid")
-
-    else:
-        return HttpResponseBadRequest()
 
 @csrf_exempt
 def upload(request):
