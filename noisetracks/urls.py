@@ -9,6 +9,7 @@ from tastypie.api import Api
 from tracks.views import Entries
 from tracks.api import SignupResource, ApiTokenResource, UserResource, AudioFileResource, EntryResource,\
     ProfileResource, EntryVoteResource
+from trackers.forms import SignupFormBeta
 
 
 v1_api = Api(api_name='v1')
@@ -36,6 +37,7 @@ urlpatterns = patterns('',
                        url(r'^audio/', 'tracks.views.stream', name='stream'),
                        url(r'^upload/', 'tracks.views.upload', name='upload'),
                        url(r'^admin/', include(admin.site.urls)),
+                       url(r'^signup/$', 'trackers.views.signup', {'signup_form': SignupFormBeta}, name='userena_signup'),
                        url(r'^', include('userena.urls')),
                        ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
