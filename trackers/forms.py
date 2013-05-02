@@ -6,7 +6,7 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 from userena.forms import SignupForm, EditProfileForm
-from userena.utils import get_profile_model, get_user_model
+from userena.utils import get_profile_model
 
 
 class SignupFormBeta(SignupForm):
