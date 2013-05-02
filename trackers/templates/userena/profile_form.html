@@ -2,24 +2,41 @@
 {% load i18n %}
 {% load url from future %}
 
-{% block title %}{% trans "Account setup" %}{% endblock %}
+{% block profile %}
 
-{% block content_title %}<h2>{% blocktrans with profile.user.username as username %}Account &raquo; {{ username }}{% endblocktrans %}</h2>{% endblock %}
+    <form action="" enctype="multipart/form-data" method="post" class="form-horizontal">
 
-{% block content %}
+        <b class="first"><a href="{% url 'userena_profile_detail' user.username %}"><span>{% trans 'back' %}</span></a></b>
 
-<form action="" enctype="multipart/form-data" method="post">
-  <ul id="box-nav">
-    <li class="first"><a href="{% url 'userena_profile_detail' user.username %}"><span>{% trans 'View profile' %}</span></a></li>
-    <li class="selected"><a href="{% url 'userena_profile_edit' user.username %}">{% trans "Edit profile" %}</a></li>
-    <li><a href="{% url 'userena_password_change' user.username %}">{% trans "Change password" %}</a></li>
-    <li class="last"><a href="{% url 'userena_email_change' user.username %}">{% trans "Change email" %}</a></li>
-  </ul>
-  {% csrf_token %}
-  <fieldset>
-    <legend>{% trans "Edit Profile" %}</legend>
-    {{ form.as_p }}
-  </fieldset>
-  <input type="submit" value="{% trans "Save changes" %}" />
-</form>
+        <h1>{% trans "Edit Profile" %}</h1>
+
+        {% csrf_token %}
+        <fieldset>
+            <!--<legend>{% trans "Edit Profile" %}</legend>-->
+
+            {{ form.non_field_errors }}
+            {% for field in form %}
+
+                <div class="control-group{% if field.errors %} error{% endif %}">
+
+                    <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
+
+                    <div class="controls">
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <span class="help-inline">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                </div>
+            {% endfor %}
+
+        </fieldset>
+        <div class="control-group">
+            <div class="controls">
+                <input type="submit" class="btn"
+                       value="{% trans "Save changes" %}"/>
+            </div>
+        </div>
+    </form>
 {% endblock %}

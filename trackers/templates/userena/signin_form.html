@@ -1,32 +1,23 @@
 {% extends 'userena/base_userena.html' %}
-{% load i18n %}
-{% load url from future %}
 
-{% block title %}{% trans "Signin" %}{% endblock %}
-
-{% block content %}
-<form action="" method="post">
-  {% csrf_token %}
-  <fieldset>
-    <legend>{% trans "Signin" %}</legend>
-    {{ form.non_field_errors }}
-    {% for field in form %}
-    {{ field.errors }}
-    {% comment %} Displaying checkboxes differently {% endcomment %}
-    {% if field.name == 'remember_me' %}
-    <p class="checkbox">
-    <label for="id_{{ field.name }}">{{ field }} {{ field.label }}</label>
-    </p>
-    {% else %}
-    <p>
-    {{ field.label_tag }}
-    {{ field }}
-    </p>
-    {% endif %}
-    {% endfor %}
-  </fieldset>
-  <input type="submit" value="{% trans "Signin" %}" />
-  <p class="forgot-password"><a href="{% url 'userena_password_reset' %}" title="{% trans 'Forgot your password?' %}">{% trans "Forgot your password?" %}</a></p>
-  {% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
-</form>
+{% block main %}
+    <h1>Hello, Noise.</h1>
 {% endblock %}
+
+
+
+{% block profile %}
+    {% include 'userena/signin_form_form_only.html' %}
+
+    </div></div>
+
+    {% if not user.is_authenticated %}
+        <div class="row-fluid">
+            <div class="span3 offset7">
+                <button class="signup btn-large btn-inverse" style="margin-top:10px;">Sign up for Noisetracks Beta</button>
+            </div>
+        </div>
+    {% endif %}
+
+{% endblock %}
+

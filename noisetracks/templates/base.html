@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en"> {% load staticfiles %}
+<head>
+    <title>{% block title %}Noisetracks Beta{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{% static "css/bootstrap.min.css"%}" rel="stylesheet" media="screen">
+    <link href="{% static "css/layout.css"%}" rel="stylesheet" media="screen">
+
+
+</head>
+<body style="background-color: white;">
+
+
+<div class="wrapper">
+    {% block wrapper %}
+        <div class="container-fluid">
+
+            <div class="row-fluid">
+                <div class="span7">
+                    {% block main %} {% endblock %}
+                </div>
+                <div id="profile" class="span5 dropdown-menu clearfix">
+                    {% if user.is_authenticated %}
+                        <button class="signout btn-danger" style="float:right;">Sign out</button>
+                    {% endif %}
+                    {% block profile %} {% endblock %}
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+</div>
+<script src="http://code.jquery.com/jquery.js"></script>
+<script src="{% static "js/bootstrap.min.js"%}"></script>
+
+<script type="text/javascript">
+    $(function() {
+        $('.signout').on('click', function(e){
+            window.location="/signout"
+        })
+        $('.signup').on('click', function(e){
+            window.location="/signup"
+        })
+    });
+</script>
+
+
+</body>
+</html>

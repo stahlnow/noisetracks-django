@@ -1,6 +1,7 @@
 # Django settings for noisetracks project.
 import os
 
+BASE = os.path.realpath(os.path.dirname(__name__))
 PROJECT_ROOT = os.path.realpath(os.path.dirname(__file__))
 
 USE_TZ = True
@@ -40,7 +41,7 @@ USERENA_FORBIDDEN_USERNAMES = ('signup', 'signout', 'signin', 'activate', 'me', 
                                'following', 'followers', 'favorites', 'friends', 'messages', 'groups', 'lists', 'apps',
                                'map', 'search', 'media', '#', 'help', 'tag', 'tools')
 
-USERENA_DEFAULT_PRIVACY = "open"
+USERENA_DEFAULT_PRIVACY = "registered"
 USERENA_MUGSHOT_GRAVATAR = True
 USERENA_HIDE_EMAIL = True
 USERENA_DISABLE_PROFILE_LIST = True
@@ -50,6 +51,9 @@ USERENA_MUGSHOT_PATH = "mugshots/"
 LOGIN_URL = '/signin/'
 LOGOUT_URL = '/signout/'
 LOGIN_REDIRECT_URL = '/%(username)s/'
+
+USERENA_SIGNIN_AFTER_SIGNUP = True
+USERENA_ACTIVATION_REQUIRED = False
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
@@ -72,26 +76,41 @@ STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
 
-# Additional locations of static files
+# Additional locations of static files (absolute paths)
 STATICFILES_DIRS = (
-# Put strings here, like "/home/html/static" or "C:/www/django/static".
-# Always use forward slashes, even on Windows.
-# Don't forget to use absolute paths, not relative paths.
+    os.path.join(BASE, "static"),
 )
+
+ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
+
+# List of template full paths
+TEMPLATE_DIRS = (
+    os.path.join(PROJECT_ROOT, 'templates/'),
+)
+
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
     #     'django.template.loaders.eggs.Loader',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.contrib.auth.context_processors.auth',
+    'django.contrib.messages.context_processors.messages',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -108,12 +127,6 @@ ROOT_URLCONF = 'noisetracks.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'noisetracks.wsgi.application'
-
-TEMPLATE_DIRS = (
-# Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-# Always use forward slashes, even on Windows.
-# Don't forget to use absolute paths, not relative paths.
-)
 
 INSTALLED_APPS = (
     'django.contrib.auth',

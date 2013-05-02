@@ -1,29 +1,42 @@
 {% extends 'userena/base_userena.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Signup" %}{% endblock %}
+{% block profile %}
 
-{% block content %}
-<form action="" method="post">
-  {% csrf_token %}
-  <fieldset style="border: none;">
-    <legend>{% trans "Signup" %}</legend>
-    {{ form.non_field_errors }}
-    {% for field in form %}
-    {{ field.errors }}
-    {% comment %} Displaying checkboxes differently {% endcomment %}
-    {% if field.name == 'tos' %}
-    <p class="checkbox">
-    <label for="id_{{ field.name }}">{{ field }} {{ field.label }}</label>
-    </p>
-    {% else %}
-    <p>
-    {{ field.label_tag }} 
-    {{ field }}
-    </p>
-    {% endif %}
-    {% endfor %}
-  </fieldset>
-  <input type="submit" value="{% trans "Signup"%}" />
-</form>
+    <form action="" method="post" class="form-horizontal">
+        {% csrf_token %}
+        <fieldset>
+            <!--<legend>{% trans "Signup for Beta" %}</legend>-->
+            {{ form.non_field_errors }}
+            {% for field in form %}
+
+                {% comment %} Displaying checkboxes differently {% endcomment %}
+                {% if field.name == 'tos' %}
+                    <p class="checkbox">
+                        <label for="id_{{ field.name }}">{{ field }} {{ field.label }}</label>
+                    </p>
+                {% else %}
+                    <div class="control-group{% if field.errors %} error{% endif %}">
+
+                        <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
+
+                        <div class="controls">
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <span class="help-inline">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+            {% endfor %}
+        </fieldset>
+        <div class="control-group">
+            <div class="controls">
+                <input type="submit" class="btn"
+                       value="{% trans "Signup for Noisetracks Beta" %}"/>
+            </div>
+        </div>
+    </form>
+
 {% endblock %}

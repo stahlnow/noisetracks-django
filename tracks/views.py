@@ -30,12 +30,12 @@ from tracks.forms import UploadForm
 AUTH_HEADER_RE = re.compile(r"ApiKey .+:.+")
 
 
-
 def index(request):
-    return render_to_response('tracks/index.html')
+    if request.user.is_authenticated():
+        return HttpResponseRedirect("/" + request.user.username + "/")  # forward use to profile
+    else:
+        return HttpResponseRedirect("/signin/")  # forward sign in page
 
-def beta(request):
-    return render_to_response('tracks/beta.html')
 
 
 class Entries(ListView):
@@ -45,7 +45,7 @@ class Entries(ListView):
     def dispatch(self, *args, **kwargs):
         return super(Entries, self).dispatch(*args, **kwargs)
 
-
+'''
 def stream(request):
     path = settings.PROJECT_ROOT + request.path
 
@@ -55,6 +55,7 @@ def stream(request):
         response['Content-Disposition'] = 'filename=%s' % ( os.path.basename(request.path) )
         return response
     return HttpResponse(FileWrapper(open(path, "rb")), mimetype='image/png')
+'''
 
 @csrf_exempt
 def upload(request):

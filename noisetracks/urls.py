@@ -1,7 +1,9 @@
-from django.conf.urls import patterns, url, include
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
 from django.conf import settings
 from django.conf.urls.static import static
 
+from django.conf.urls import patterns, url, include
 from django.contrib.gis import admin
 
 from tastypie.api import Api
@@ -9,7 +11,7 @@ from tastypie.api import Api
 from tracks.views import Entries
 from tracks.api import SignupResource, ApiTokenResource, UserResource, AudioFileResource, EntryResource,\
     ProfileResource, EntryVoteResource
-from trackers.forms import SignupFormBeta
+from trackers.forms import SignupFormBeta, EditProfileFormBeta
 
 
 v1_api = Api(api_name='v1')
@@ -32,17 +34,20 @@ urlpatterns = patterns('',
                        #url(r'^$', Entries.as_view(), name='entries'),
                        #url(r'^$', 'tracks.views.map', name='home'),
                        url(r'^$', 'tracks.views.index', name='index'),
-                       url(r'^beta/', 'tracks.views.beta', name='beta'),
                        url(r'^api/', include(v1_api.urls)),
-                       url(r'^audio/', 'tracks.views.stream', name='stream'),
+                       #url(r'^audio/', 'tracks.views.stream', name='stream'),
                        url(r'^upload/', 'tracks.views.upload', name='upload'),
                        url(r'^admin/', include(admin.site.urls)),
-                       url(r'^signup/$', 'trackers.views.signup', {'signup_form': SignupFormBeta}, name='userena_signup'),
+                       url(r'^signup/$',
+                           'trackers.views.signup',
+                           {'signup_form': SignupFormBeta},
+                           name='userena_signup'),
+                       url(r'^(?P<username>\w+)/edit/',
+                           'userena.views.profile_edit',
+                           {'edit_profile_form': EditProfileFormBeta},
+                           name="userena_profile_edit"),
                        url(r'^', include('userena.urls')),
                        ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-
-if settings.DEBUG:
-    urlpatterns += patterns('',
-                            (r'^audio/^', 'tracks.views.stream', {}),
-                            )
+# serve static files, if DEBUG = True
+urlpatterns += staticfiles_urlpatterns()

@@ -1,0 +1,43 @@
+.wrapper {
+    position: relative;
+    top: 20px;
+}
+
+#profile {
+    background-color: #333;
+    display: block;
+    position: static;
+    padding: 15px;
+}
+
+#profileMenu {
+    background-color: #333;
+    color:#fff;
+    display:block;
+    position: static;
+}
+
+#profileMenu a {
+    color:#eee;
+}
+
+#profileMenu a:hover {
+    color:#333;
+}
+
+ul.errorlist {
+    list-style-type: none;
+}
+
+/*Overrides */
+legend {
+    color:#eee;
+    margin-bottom: 0;
+    border: 0;
+}
+legend+.control-group {
+    margin-top: 0px;
+}
+.form-horizontal .control-group {
+    margin-bottom: 3px;
+}
