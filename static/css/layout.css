@@ -1,17 +1,43 @@
-.wrapper {
-    position: relative;
-    top: 20px;
+html,
+body {
+    height: 100%;
+}
+
+#wrapper {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    /* Negative indent footer by it's height */
+    margin: 0 auto -30px;
+}
+
+/* Set the fixed height of the footer here */
+#push,
+#footer {
+    height: 30px;
+}
+
+#footer {
+
+}
+
+#content {
+    padding-top: 60px;
+}
+
+.credit {
+    padding: 5px 5px 5px 10px;
 }
 
 #profile {
-    background-color: #333;
+    background-color: #1b1b1b;
     display: block;
     position: static;
     padding: 15px;
 }
 
 #profileMenu {
-    background-color: #333;
+    background-color: #1b1b1b;
     color:#fff;
     display:block;
     position: static;
@@ -22,14 +48,36 @@
 }
 
 #profileMenu a:hover {
-    color:#333;
+    color:#1b1b1b;
 }
+
+/* apply responsive CSS fixes as necessary */
+@media (max-width: 767px) {
+    #content {
+        padding-top: 0px;
+    }
+    #footer {
+        margin-left: -20px;
+        margin-right: -20px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
+
+/***************Overrides ****************/
 
 ul.errorlist {
     list-style-type: none;
 }
 
-/*Overrides */
+.btn {
+    margin-top: 5px;
+}
+
+.dropdown-menu>li>a:hover {
+    color:#1b1b1b;
+}
+
 legend {
     color:#eee;
     margin-bottom: 0;

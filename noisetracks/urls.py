@@ -47,7 +47,9 @@ urlpatterns = patterns('',
                            {'edit_profile_form': EditProfileFormBeta},
                            name="userena_profile_edit"),
                        url(r'^', include('userena.urls')),
-                       ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+                       )\
+              + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)\
+              + static(settings.AUDIO_URL, document_root=settings.AUDIO_ROOT)
 
 # serve static files, if DEBUG = True
 urlpatterns += staticfiles_urlpatterns()

@@ -1,23 +1,57 @@
 {% extends 'userena/base_userena.html' %}
-
-{% block main %}
-    <h1>Hello, Noise.</h1>
-{% endblock %}
-
-
+{% load i18n %}
+{% load url from future %}
 
 {% block profile %}
-    {% include 'userena/signin_form_form_only.html' %}
 
-    </div></div>
+    <form action="" method="post" class="form-horizontal">
+        {% csrf_token %}
+        <fieldset>
+            <!--<legend>{% trans "Sign in" %}</legend>-->
+            {{ form.non_field_errors }}
+            {% for field in form %}
 
-    {% if not user.is_authenticated %}
-        <div class="row-fluid">
-            <div class="span3 offset7">
-                <button class="signup btn-large btn-inverse" style="margin-top:10px;">Sign up for Noisetracks Beta</button>
+                {% if field.name == 'remember_me' %}
+                    <div class="control-group{% if field.errors %} error{% endif %}">
+                        <div class="controls">
+                            <label class="checkbox" for="id_{{ field.name }}">{{ field }} {{ field.label }}</label>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="control-group{% if field.errors %} error{% endif %}">
+                        <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
+
+                        <div class="controls">
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <span class="help-inline">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </fieldset>
+
+        <div class="control-group">
+            <div class="controls">
+                <input type="submit" class="btn"
+                       value="{% trans "Sign in" %}"/>
             </div>
         </div>
-    {% endif %}
+
+        <div class="controls">
+            <a href="{% url 'userena_password_reset' %}"
+               title="{% trans 'Forgot your password?' %}">{% trans "Forgot your password?" %}</a>
+        </div>
+        {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
+    </form>
+
+    <div class="row-fluid">
+        <div>
+            <button class="signup btn-large btn-inverse" style="margin-top:10px;">Sign up for Noisetracks Beta</button>
+        </div>
+    </div>
+
 
 {% endblock %}
 

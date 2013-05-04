@@ -32,11 +32,12 @@ AUTH_HEADER_RE = re.compile(r"ApiKey .+:.+")
 
 def index(request):
     if request.user.is_authenticated():
-        return HttpResponseRedirect("/" + request.user.username + "/")  # forward use to profile
+        tracks = Entry.objects.all().order_by('-created')[:5]
+        return render_to_response('tracks/index.html', {
+            'tracks': tracks,
+        }, context_instance=RequestContext(request))
     else:
-        return HttpResponseRedirect("/signin/")  # forward sign in page
-
-
+        return HttpResponseRedirect("/signin/")  # forward to sign in page
 
 class Entries(ListView):
     model = Entry
