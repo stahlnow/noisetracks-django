@@ -47,8 +47,9 @@ class AudioFile(BaseModel):
     def __unicode__(self):
         return self.uuid
 
+    # used in admin view to show spectrogram
     def spectrogram_img(self):
-        return '<img src="http://stahlnow:8000/audio/%s" height="50px"/>' % self.spectrogram
+        return '<img src="%s" height="50px"/>' % self.spectrogram.url
 
     spectrogram_img.allow_tags = True
 

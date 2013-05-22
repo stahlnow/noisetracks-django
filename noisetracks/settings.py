@@ -142,7 +142,6 @@ INSTALLED_APPS = (
     'djsupervisor',
     'trackers',
     'tracks',
-    'upload',
     'userena',
     'guardian',
     'easy_thumbnails',
@@ -156,8 +155,6 @@ AUTHENTICATION_BACKENDS = (
     'guardian.backends.ObjectPermissionBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
-
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

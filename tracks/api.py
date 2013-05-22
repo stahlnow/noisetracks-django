@@ -27,28 +27,6 @@ from voting.models import Vote
 
 from userena.forms import SignupForm
 
-'''
-class BaseModelResource(ModelResource):
-    @classmethod
-    def get_fields(cls, fields=None, excludes=None):
-        """
-        Unfortunately we must override this method because tastypie ignores 'blank' attribute
-        on model fields.
-
-        Here we invoke an insane workaround hack due to metaclass inheritance issues:
-        http://stackoverflow.com/questions/12757468/invoking-super-in-classmethod-called-from-metaclass-new
-        """
-        this_class = next(c for c in cls.__mro__ if c.__module__ == __name__ and c.__name__ == 'BaseModelResource')
-        fields = super(this_class, cls).get_fields(fields=fields, excludes=excludes)
-        if not cls._meta.object_class:
-            return fields
-        for django_field in cls._meta.object_class._meta.fields:
-            if django_field.blank is True:
-                res_field = fields.get(django_field.name, None)
-                if res_field:
-                    res_field.blank = True
-        return fields
-'''
 
 class SignupResource(ModelResource):
     class Meta:
@@ -171,15 +149,16 @@ class EntryResource(ModelResource):
         detail_allowed_methods = ["get", "put", "delete"]
         include_resource_uri = True
 
-        limit = 100
+        limit = 5
 
-        fields = ['uuid', 'location', 'recorded', 'created', 'score', 'likes']
+        fields = ['uuid', 'location', 'recorded', 'created', 'score']
 
         ordering = ['created', 'recorded', 'user']
 
         filtering = {
             'created': ['exact', 'lt', 'lte', 'gte', 'gt'],
             'recorded': ['exact', 'lt', 'lte', 'gte', 'gt'],
+            'uuid': ['exact'],
             'audiofile': ALL_WITH_RELATIONS,
             'user': ALL_WITH_RELATIONS
         }	
@@ -232,7 +211,32 @@ class EntryResource(ModelResource):
             return 0
 
 
+class EntryUuidResource(ModelResource):
+    user = fields.ForeignKey(UserResource, 'user', full=False)
+    audiofile = fields.ForeignKey(AudioFileResource, 'audiofile', full=False)
 
+    class Meta:
+        queryset = Entry.objects.all()
+        resource_name = 'entry_uuid'
+        list_allowed_methods = ["get"]
+        detail_allowed_methods = []
+        include_resource_uri = False
+
+        limit = 1000
+
+        fields = ['uuid', 'created', 'updated']
+
+        ordering = ['created']
+
+        filtering = {
+            'created': ['exact', 'lt', 'lte', 'gte', 'gt'],
+            'updated': ['exact', 'lt', 'lte', 'gte', 'gt'],
+            'audiofile': ALL_WITH_RELATIONS,
+            'user': ALL_WITH_RELATIONS
+        }
+
+        authentication = ApiKeyAuthentication()
+        authorization = Authorization()
 
 class ProfileResource(ModelResource):
     user = fields.ToOneField(UserResource, 'user', full=True)

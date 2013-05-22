@@ -72,17 +72,17 @@ def upload(request):
                     username = auth.split(':')[0]
                     api_key = auth.split(':')[1]
                 else:
-                    return HttpResponseBadRequest()                 # fail: bad header
+                    return HttpResponseBadRequest(content="bad header")                 # fail: bad header
 
                 try:
                     user = User.objects.get(username=username)      # try getting user from table
                 except ObjectDoesNotExist:
-                    return HttpResponseBadRequest()                 # ups, user does not exist
+                    return HttpResponseBadRequest(content="user does not exist")                 # ups, user does not exist
 
                 try:
                     key = ApiKey.objects.get(user=user).key         # try getting api key from user
                 except ObjectDoesNotExist:
-                    return HttpResponseBadRequest()                 # todo: send info to client, that the key is missing
+                    return HttpResponseBadRequest(content="key is missing")                 # todo: send info to client, that the key is missing
 
                 if api_key == key:                                  # check if the keys match
                     f = AudioFile(file=request.FILES['wavfile'], status=0)  # create file with status = waiting
@@ -93,9 +93,9 @@ def upload(request):
 
                 return HttpResponse(content=f.uuid, status=201)  # return with status 201 'created' + uuid of audiofile
             else:
-                return HttpResponseBadRequest("auth is empty")
+                return HttpResponseBadRequest(content="auth is empty")
         else:
-            return HttpResponseBadRequest("form not valid")
+            return HttpResponseBadRequest(content="form not valid")
 
     else:
         return HttpResponseBadRequest()

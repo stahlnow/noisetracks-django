@@ -9,8 +9,8 @@ from django.contrib.gis import admin
 from tastypie.api import Api
 
 from tracks.views import Entries
-from tracks.api import SignupResource, ApiTokenResource, UserResource, AudioFileResource, EntryResource,\
-    ProfileResource, EntryVoteResource
+from tracks.api import SignupResource, ApiTokenResource, UserResource, AudioFileResource, EntryResource, \
+    EntryUuidResource, ProfileResource, EntryVoteResource
 from trackers.forms import SignupFormBeta, EditProfileFormBeta
 
 
@@ -20,6 +20,7 @@ v1_api.register(ApiTokenResource())
 v1_api.register(UserResource())
 v1_api.register(AudioFileResource())
 v1_api.register(EntryResource())
+v1_api.register(EntryUuidResource())
 v1_api.register(ProfileResource())
 
 #v1_api.register(ContentTypeResource())
