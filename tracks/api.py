@@ -149,7 +149,7 @@ class EntryResource(ModelResource):
         detail_allowed_methods = ["get", "put", "delete"]
         include_resource_uri = True
 
-        limit = 5
+        limit = 100
 
         fields = ['uuid', 'location', 'recorded', 'created', 'score']
 

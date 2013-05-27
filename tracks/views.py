@@ -37,7 +37,8 @@ def index(request):
             'tracks': tracks,
         }, context_instance=RequestContext(request))
     else:
-        return HttpResponseRedirect("/signin/")  # forward to sign in page
+        #return HttpResponseRedirect("/signin/")  # forward to sign in page
+        return render_to_response('tracks/welcome.html', {}, context_instance=RequestContext(request))
 
 class Entries(ListView):
     model = Entry

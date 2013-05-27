@@ -2,8 +2,26 @@
 {% load i18n %}
 {% load url from future %}
 
-{% block profile %}
-    Thanks for testing Noisetracks Beta.<br />
-    Stay tuned!<br />
-    Go to your <a href="/{{ user.username }}">profile</a> and download the app.
+
+
+
+{% block main %}
+
+
+
+    <div class="span8">
+        {% if user.is_authenticated %}<h1>Thanks for beta testing Noisetracks.</h1>{% endif %}
+    </div>
+
+    <div id="profile" class="span4">
+        {% block profile %}
+            Did you download the <a href="/{{ user.username }}">app</a> already?<br />
+            You might also want to edit your account <a href="/{{ user.username }}/edit">settings</a>
+            or <a href="/{{ user.username }}/password">password</a>.<br />
+            More content will be published here after the first beta phase.
+        {% endblock %}
+    </div>
+
+
+
 {% endblock %}

@@ -52,16 +52,7 @@
         <div id="content">
             <div class="container-fluid">
                 <div class="row-fluid">
-                    <div class="span8">
-                        {% block main %}
-                            {% if not user.is_authenticated %}<h1>Hello, Noise.</h1>{% endif %}
-                        {% endblock %}
-                    </div>
-                    <div id="profile" class="span4">
-                        {% block profile %}{% endblock %}
-                    </div>
-
-
+                    {% block main %}{% endblock %}
                 </div>
             </div>
         </div>
